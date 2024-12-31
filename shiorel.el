@@ -635,11 +635,6 @@ of which is chosen as configured by
             prioritized-url)))
       (progn
         (display-warning 'shiorel (format "No URLs found for item: %S." item))
-        ;; HACK: Several places call this function, all of which expect
-        ;; a URL.  It seems like a bug on Pocket's end that some items
-        ;; can be missing URLs (nowadays; it wasn't a problem in the
-        ;; past), so rather than return nil or signal an error here, we
-        ;; return a URL that can at least point to the problem.
         "https://example.com/?error=item-had-no-URL")))
 
 (defun shiorel--item-visible-p ()
@@ -732,22 +727,6 @@ Items should be a list of items as returned by
   ;; buffer.
   (when (string= "*shiorel*" (buffer-name))
     (run-hooks 'shiorel-finalize-hook)))
-
-
-
-(defun shiorel--action (action &rest _)
-  "Execute ACTION on marked or current items.
-ACTION should be a string or symbol which is the name of an
-action in the Pocket API."
-  ;; MAYBE: Not currently using this, may not need it.
-  (shiorel--with-shiorel-buffer
-    (apply #'pocket-lib--action action (shiorel--marked-or-current-items))))
-
-(defun shiorel--marked-or-current-items ()
-  "Return marked or current items, suitable for passing to `pocket-lib' functions."
-  (or (cl-loop for (id . ov) in shiorel-mark-overlays
-               collect (list (cons 'item_id id)))
-      (list (shiorel--current-item))))
 
 (defun shiorel--set-tabulated-list-format ()
   "Set `tabulated-list-format'.
